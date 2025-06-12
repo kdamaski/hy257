@@ -39,7 +39,7 @@ void unlock(void *me) {
   mcs_node_t *my_node = (mcs_node_t *)me;
   // Check if there is a successor node
   mcs_node_t *successor = (mcs_node_t *)LOAD_EXPLICIT(&my_node->next);
-  if (successor == NULL) {
+  if (successor == NULL) { // this means mynode is the tail
     if (CMPXCHG(&mcslock.tail, (unsigned long)my_node, (unsigned long)NULL) ==
         (unsigned long)my_node) {
       return; // Lock released successfully

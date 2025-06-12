@@ -37,17 +37,18 @@ unsigned long Thread_new(void *func(void *), void *args, long nbytes,
   // start of critical section. Will care when preemption comes
   // good time to free the terminated threads before i have a stack smash or sth
   empty_free(uq->free_list);
-  if (posix_memalign((void **)&new_thr, 16,
-                     (uq->stack_size + sizeof(struct u_thread) + nbytes + 15) &
-                         ~15) != 0) {
-    fprintf(stderr, "memory allocation failed for thread stack\n");
-    exit(1);
-  }
+  // if (posix_memalign((void **)&new_thr, 16,
+  //                    (uq->stack_size + sizeof(struct u_thread) + nbytes + 15)
+  //                    &
+  //                        ~15) != 0) {
+  //   fprintf(stderr, "memory allocation failed for thread stack\n");
+  //   exit(1);
+  // }
 
-  // unsigned total_stack_sz = // syntax below says address must be aligned 16
-  //     (uq->stack_size + sizeof(struct u_thread) + nbytes + 15) & ~15;
-  // new_thr = (struct u_thread *)calloc(1, total_stack_sz);
-  // assert(new_thr);
+  unsigned total_stack_sz = // syntax below says address must be aligned 16
+      (uq->stack_size + sizeof(struct u_thread) + nbytes + 15) & ~15;
+  new_thr = (struct u_thread *)calloc(1, total_stack_sz);
+  assert(new_thr);
 
   // nbytes above stack length
   new_thr->sp = (unsigned long *)((void *)new_thr + uq->stack_size +
@@ -65,13 +66,7 @@ unsigned long Thread_new(void *func(void *), void *args, long nbytes,
   --new_thr->sp;
   *(new_thr->sp) = (unsigned long)_thrstart;
 
-  // new_thr->sp -= 24;
-
-  // new_thr->sp[17] = (unsigned long)func; // Those 2 args are for context
-  // restore
-  // // copy the args into the bottom of the allocated stack
-  // new_thr->sp[18] = (unsigned long)my_args;
-  new_thr->sp -= 10;
+  new_thr->sp -= 6;
 
   new_thr->sp[1] = (unsigned long)func; // Those 2 args are for context restore
   // copy the args into the bottom of the allocated stack
@@ -133,8 +128,16 @@ void Thread_pause(struct uthread_queue *uq) {
   } else {
     uq->n_threads--;
   }
+  void *dummy;
   void *from = uq->curr_thr;
   void *to = uq->curr_thr = ready_dequeue(uq->ready_q);
+  // void *to;
+  // if (uq->ready_q->head == NULL) {
+  //   fprintf(stderr, "Cannot dequeue from empty\n");
+  //   return;
+  // }
+  // to = uq->ready_q->head;
+  // uq->ready_q->head = uq->ready_q->head->next;
   _swtch(from, to);
 }
 

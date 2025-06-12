@@ -2,7 +2,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 
-#define NUM_THREADS 4
+#define NUM_THREADS 1
 #define CONTEXT_SZ 503
 // 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
 // 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373,

@@ -109,13 +109,20 @@ unsigned long Thread_new(void *func(void *), void *args, long nbytes,
   struct u_thread *new_thr = NULL;
   // start of critical section. Will care when preemption comes
   // good time to free the terminated threads before i have a stack smash or sth
-  // empty_free(uq->free_list);
-  if (posix_memalign((void **)&new_thr, 16,
-                     (uq->stack_size + sizeof(struct u_thread) + nbytes + 15) &
-                         ~15) != 0) {
-    fprintf(stderr, "memory allocation failed for thread stack\n");
-    exit(1);
-  }
+  empty_free(uq->free_list);
+  // if (posix_memalign((void **)&new_thr, 16,
+  //                    (uq->stack_size + sizeof(struct u_thread) + nbytes + 15)
+  //                    &
+  //                        ~15) != 0) {
+  //   fprintf(stderr, "memory allocation failed for thread stack\n");
+  //   exit(1);
+  // }
+
+  unsigned total_stack_sz = // syntax below says address must be aligned 16
+      (uq->stack_size + sizeof(struct u_thread) + nbytes + 15) & ~15;
+  new_thr = (struct u_thread *)calloc(1, total_stack_sz);
+  assert(new_thr);
+
   // nbytes above stack length
   new_thr->sp = (unsigned long *)((void *)new_thr + uq->stack_size +
                                   sizeof(struct u_thread));
